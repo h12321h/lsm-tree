@@ -40,11 +40,11 @@ void MemTable::reset() {
 }
 
 void MemTable::change2SSTable() {
-    string path="/data/level-0";
-    if(!filesystem::exists(path))
+    string path="/data/level-0";//存储路径
+    if(!filesystem::exists(path))//创建目录
         filesystem::create_directory(path);
-    size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});
-    string filename=path+"/"+to_string(file_count+1)+".sst";
+    size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//文件数-时间戳
+    string filename=path+"/"+to_string(file_count+1)+".sst";//文件名
     SSTable sst= SSTable(filename,file_count+1);
     //遍历跳表
     for(auto it=skiplist->head->forward[0];it!= nullptr;it=it->forward[0]){

@@ -14,15 +14,15 @@ SSTable::SSTable(const string &filename,int timeStamp){
 
 void SSTable::put(uint64_t key, const string &val){
     uint32_t vlen=val.size();
-    uint64_t offset=vlog->write(key,vlen,val);
-    header->addNum(1);
+    uint64_t offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量
+    header->addNum(1);//键值对数目+1
     header->setMinKey(key);
     header->setMaxKey(key);
-    ofstream out(filename,ios::binary);
+    ofstream out(filename,ios::binary);//写入sstable
     out.seekp(0,ios::end);
-    out.write((char*)&offset,sizeof(uint64_t));
-    out.write((char*)&offset,sizeof(uint64_t));
-    out.write((char*)vlen,sizeof(uint32_t));
+    out.write((char*)&key,sizeof(uint64_t));//key
+    out.write((char*)&offset,sizeof(uint64_t));//offset
+    out.write((char*)vlen,sizeof(uint32_t));//vlen
     out.close();
 }
 

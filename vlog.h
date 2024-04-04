@@ -13,7 +13,7 @@ private:
     string filename;
 
 public:
-    VLog();
+    VLog(){};
     VLog(const string &filename){
         this->filename = filename;
         ofstream file(filename,ios::binary);
