@@ -8,14 +8,13 @@
 using namespace std;
 
 class SSTheader {
-private:
+public:
     string filename;
     uint64_t timeStamp;  // 时间戳的序列号
     uint64_t num;  // 该SSTable中的键值对数目
     uint64_t min_key;
     uint64_t max_key;
 
-public:
     SSTheader();
     SSTheader(const string &filename);
     ~SSTheader();

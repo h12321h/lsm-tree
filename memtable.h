@@ -28,7 +28,7 @@ public:
 
     void reset() ;
 
-    void change2SSTable();
+    void change2SSTable(string dir,string vlog_name);
 
     int getSize(){
         return skiplist->size;

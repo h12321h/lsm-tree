@@ -3,14 +3,19 @@
 
 const int MAX_MEM_SIZE=408;
 
-KVStore::KVStore(const std::string &dir, const std::string &vlog) : KVStoreAPI(dir, vlog)
+KVStore::KVStore(const std::string &dir, const std::string &vlog_name) : KVStoreAPI(dir, vlog_name)
 {
+    this->dir=dir;
+    this->vlog_name=vlog_name;
     mem = new MemTable();
-    vlog = new VLog("/data/vlog");
+    if(!filesystem::exists(dir))
+        filesystem::create_directory(dir);
+    sstListHead= nullptr;
 }
 
 KVStore::~KVStore()
 {
+    delete mem;
 }
 
 /**
@@ -20,7 +25,7 @@ KVStore::~KVStore()
 void KVStore::put(uint64_t key, const std::string &s)
 {
     if(mem->getSize()>MAX_MEM_SIZE)
-        mem->change2SSTable();
+        mem->change2SSTable(dir,vlog_name);
     mem->put(key,s);
 }
 /**
@@ -29,7 +34,47 @@ void KVStore::put(uint64_t key, const std::string &s)
  */
 std::string KVStore::get(uint64_t key)
 {
-	return "";
+	//find in memtable
+    string res=mem->get(key);
+    if(res!="")
+        return res;
+    //find in sstList
+    SSTCache *p=sstListHead;
+    while(p!=nullptr){
+        res=p->sstable->get(key);//todo
+        if(res!="")
+            return res;
+        p=p->next;
+    }
+    //find in sstable
+    //遍历level，以及level下的sstable
+    int currentLevel;
+    int currentTimeStamp;
+    if(sstListHead== nullptr){
+        currentLevel=0;
+        currentTimeStamp=0;
+    }else{
+        currentLevel=sstListHead->level;
+        currentTimeStamp=sstListHead->timeStamp;
+    }
+    while(true){
+        string path=dir+"/level-"+to_string(currentLevel);
+        if(!filesystem::exists(path))//检查是否有这个level
+            break;
+        size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//看这个level下有多少文件
+        for(int j=currentTimeStamp+1;j<=file_count;j++){
+            string filename=path+"/"+to_string(j)+".sst";
+            SSTable *sst= new SSTable(filename,j,vlog_name);
+            sst->loadSSTable();
+            SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
+            sstListHead=newCache;
+            res=sst->get(key);
+            if(res!="")
+                return res;
+        }
+        currentLevel++;
+    }
+    return "";
 }
 /**
  * Delete the given key-value pair if it exists.

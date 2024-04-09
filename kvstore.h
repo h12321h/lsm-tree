@@ -9,11 +9,25 @@ class KVStore : public KVStoreAPI
 {
 	// You can add your implementation here
 private:
+    string dir;
+    string vlog_name;
     MemTable *mem;
-    VLog *vlog;
+    struct SSTCache{
+        SSTable *sstable;
+        int level;
+        int timeStamp;
+        SSTCache *next;
+        SSTCache(SSTable *sstable,int level,int timeStamp,SSTCache *next= nullptr){
+            this->sstable=sstable;
+            this->level=level;
+            this->timeStamp=timeStamp;
+            this->next=next;
+        }
+    };
+    SSTCache *sstListHead;
 
 public:
-	KVStore(const std::string &dir, const std::string &vlog);
+	KVStore(const std::string &dir, const std::string &vlog_name);
 
 	~KVStore();
 

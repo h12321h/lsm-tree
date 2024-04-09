@@ -41,11 +41,11 @@ string SkipList::get(uint64_t key) const {
             t=t->forward[i];
         if(t->forward[i]!= nullptr&&t->forward[i]->key==key){
             if(t->forward[i]->val=="~DELETED~")
-                return "not found";
+                return "";
             return t->forward[i]->val;
         }
     }
-    return "not found";
+    return "";
 }
 
 void SkipList::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, std::string> > &list) const {
