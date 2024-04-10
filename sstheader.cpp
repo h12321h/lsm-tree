@@ -53,11 +53,11 @@ bool SSTheader::readHeader(uint64_t offset){
     return true;
 }
 
-bool SSTheader::writeHeader(uint64_t offset){
-    ofstream out(filename,ios::binary|ios::out);
+void SSTheader::writeHeader(uint64_t offset){
+    ofstream out(filename,ios::binary);
     if(!out){
         cout<<"open file error"<<endl;
-        return false;
+        return;
     }
     out.seekp(offset,ios::beg);
     out.write((char*)&timeStamp,sizeof(uint64_t));
@@ -65,6 +65,5 @@ bool SSTheader::writeHeader(uint64_t offset){
     out.write((char*)&min_key,sizeof(uint64_t));
     out.write((char*)&max_key,sizeof(uint64_t));
     out.close();
-    return true;
 }
 

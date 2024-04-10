@@ -13,3 +13,6 @@ persistence: kvstore.o correctness.o memtable.o sstable.o skiplist.o sstheader.o
 clean:
 	-rm -f correctness persistence *.o
 	-rm -rf data/level-0
+
+r:
+	-rm -rf data/level-0

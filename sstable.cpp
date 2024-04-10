@@ -21,12 +21,15 @@ SSTable::~SSTable(){
 }
 
 string SSTable::get(uint64_t key) const{
-    if(!filter->get(key))//bloomfilter判断是否存在
+    if(!filter->get(key)){//bloomfilter判断是否存在
+       // cout<<"filter not found"<<endl;
         return "";
-    uint64_t left=0,right=header->num-1;
-    while(left<=right){//二分查找
+    }  
+    int left=0,right=header->num-1;
+    while(left<=right&&right>=0&&left<header->num){//二分查找
         uint64_t mid=(left+right)/2;
         if(data[mid].key==key&&data[mid].vlen>0){
+            //cout<<"0";
             return vlog->read(data[mid].offset,data[mid].vlen);
         }
         else if(data[mid].key<key){
@@ -48,44 +51,74 @@ void SSTable::put(uint64_t key, const string &val){
         offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量
         filter->set(key);//bloomfilter
     }
-    header->addNum(1);//键值对数目+1
     header->setMinKey(key);//todo优化
     header->setMaxKey(key);
-    ofstream out(filename,ios::binary|ios::app|ios::out);//写入sstable
-    if (!out.is_open()) {
-        std::cerr << "Failed to open file." << std::endl;
+    data[header->num].key=key;
+    data[header->num].offset=offset;
+    data[header->num].vlen=vlen;
+    header->num++;
+}
+
+void SSTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const{
+    int left=0,right=header->num-1;
+    int start=header->num,end=0;
+    //二分查找，找到第一个大于等于key1
+    while(left<=right&&right>=0&&left<header->num){
+        uint64_t mid=(left+right)/2;
+        if(data[mid].key>=key1){
+            right=mid-1;
+            start=mid;
+        }else{
+            left=mid+1;
+        }
+    }
+    //二分查找，找到最后一个小于等于key2
+    right=header->num-1;
+    while(left<=right&&right>=0&&left<header->num){
+        uint64_t mid=(left+right)/2;
+        if(data[mid].key<=key2){
+            left=mid+1;
+            end=mid;
+        }else{
+            right=mid-1;
+        }
+    }
+
+    for(int i=start;i<=end;i++){
+        if(data[i].vlen>0){
+            list.push_back(make_pair(data[i].key,vlog->read(data[i].offset,data[i].vlen)));
+        }
+    }
+}
+
+void SSTable::writeSSTable(){
+    header->writeHeader(0);
+    filter->writeFilter(filename,32);
+    ofstream out(filename,ios::binary|ios::app|ios::out);
+    if(!out){
+        cout<<"open file error"<<endl;
         return;
     }
     out.seekp(0,ios::end);
-    std::streampos position = out.tellp();
- //   std::cout << filename<<"SST position: " << position << std::endl;
-    out.write((char*)&key,sizeof(uint64_t));//key
-    out.write((char*)&offset,sizeof(uint64_t));//offset
-    out.write((char*)&vlen,sizeof(uint32_t));//vlen
-    out.flush();
+    for(int i=0;i<header->num;i++){
+        out.write((char*)&data[i].key,sizeof(uint64_t));
+        out.write((char*)&data[i].offset,sizeof(uint64_t));
+        out.write((char*)&data[i].vlen,sizeof(uint32_t));
+    }
     out.close();
 }
 
-void SSTable::updateHeader(){
-    header->writeHeader(0);
-}
-
-void SSTable::updateFilter(){
-    filter->writeFilter(filename,32);
-}
-
 void SSTable::loadSSTable(){
-    ifstream in(filename,ios::binary);
+    ifstream in(filename,ios::binary|ios::in);
     if(!in){
         cout<<"open file error"<<endl;
         return;
     }
-    in.seekg(0,ios::beg);
     header->readHeader(0);
     data=new Node[header->num];
     filter->readFilter(filename,32);
-    int i=0;
-    while(!in.eof()){
+    in.seekg(32+8192,ios::beg);
+    for(int i=0;i<header->num;i++){
         uint64_t key,offset;
         uint32_t vlen;
         in.read((char*)&key,sizeof(uint64_t));
@@ -94,7 +127,6 @@ void SSTable::loadSSTable(){
         data[i].key=key;
         data[i].offset=offset;
         data[i].vlen=vlen;
-        i++;
     }
     in.close();
 }

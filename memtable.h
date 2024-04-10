@@ -6,6 +6,7 @@
 #define LSMKV_HANDOUT_MEMTABLE_H
 #include"skiplist.h"
 #include"vlog.h"
+#include"sstable.h"
 #include <list>
 using namespace std;
 

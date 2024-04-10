@@ -104,6 +104,44 @@ void KVStore::reset()
  */
 void KVStore::scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, std::string>> &list)
 {
+    //scan memtable
+    mem->scan(key1,key2,list);
+
+    //scan sstList
+    SSTCache *p=sstListHead;
+    while(p!=nullptr){
+        p->sstable->scan(key1,key2,list);
+        p=p->next;
+    }
+
+    //scan sstable
+    int currentLevel;
+    int currentTimeStamp;
+    if(sstListHead== nullptr){
+        currentLevel=0;
+        currentTimeStamp=0;
+    }else{
+        currentLevel=sstListHead->level;
+        currentTimeStamp=sstListHead->timeStamp;
+    }
+    while(true){
+        string path=dir+"/level-"+to_string(currentLevel);
+        if(!filesystem::exists(path))//检查是否有这个level
+            break;
+        size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//看这个level下有多少文件
+        for(int j=currentTimeStamp+1;j<=file_count;j++){
+            string filename=path+"/"+to_string(j)+".sst";
+            SSTable *sst= new SSTable(filename,j,vlog_name);
+            sst->loadSSTable();
+            SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
+            sstListHead=newCache;
+            sst->scan(key1,key2,list);
+        }
+        currentLevel++;
+    }
+
+    //sort list
+    list.sort();//todo 优化
 }
 
 /**

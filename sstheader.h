@@ -24,7 +24,7 @@ public:
     void setMinKey(uint64_t key);
     void setMaxKey(uint64_t key);
     bool readHeader(uint64_t offset);
-    bool writeHeader(uint64_t offset);
+    void writeHeader(uint64_t offset);
 };
 
 

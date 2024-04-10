@@ -16,8 +16,6 @@ public:
     VLog(){};
     VLog(const string &filename){
         this->filename = filename;
-        ofstream file(filename,ios::binary);
-        file.close();
     };
     ~VLog();
     int write(const uint64_t key,const uint32_t vlen,const string value);

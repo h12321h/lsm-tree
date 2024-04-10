@@ -8,8 +8,10 @@
 #include"sstheader.h"
 #include"bloomfilter.h"
 #include"vlog.h"
+#include"memtable.h"
 using namespace std;
 class SSTable {
+friend class MemTable;
 private:
     struct Node{
         uint64_t key;
@@ -28,10 +30,10 @@ public:
     SSTable();
     SSTable(const string &filename,int timeStamp,string vlog_name);
     ~SSTable();
-    void updateHeader();
-    void updateFilter();
     void put(uint64_t key, const string &val);
     string get(uint64_t key) const;
+    void scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const;
+    void writeSSTable();
     void loadSSTable();
 
 };

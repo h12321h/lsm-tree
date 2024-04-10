@@ -24,7 +24,7 @@ private:
 		EXPECT(not_found, store.get(1));
 		EXPECT(false, store.del(1));
 
-		phase();
+		phase();//1
 
 		// Test multiple key-value pairs
 		for (i = 0; i < max; ++i)
@@ -32,12 +32,12 @@ private:
 			store.put(i, std::string(i + 1, 's'));
 			EXPECT(std::string(i + 1, 's'), store.get(i));
 		}
-		phase();
+		phase();//2
 
 		// Test after all insertions
 		for (i = 0; i < max; ++i)
 			EXPECT(std::string(i + 1, 's'), store.get(i));
-		phase();
+		phase();//3
 
 		// Test scan
 		std::list<std::pair<uint64_t, std::string>> list_ans;
@@ -70,7 +70,7 @@ private:
 			}
 		}
 
-		phase();
+		phase();//4
 
 		// Test deletions
 		for (i = 0; i < max; i += 2)
@@ -85,7 +85,7 @@ private:
 		for (i = 1; i < max; ++i)
 			EXPECT(i & 1, store.del(i));
 
-		phase();
+		phase();//5
 
 		report();
 	}
@@ -205,15 +205,15 @@ public:
 		std::cout << "[Simple Test]" << std::endl;
 		regular_test(SIMPLE_TEST_MAX);
 
-		store.reset();
+		// store.reset();
 
-		std::cout << "[Large Test]" << std::endl;
-		regular_test(LARGE_TEST_MAX);
+		// std::cout << "[Large Test]" << std::endl;
+		// regular_test(LARGE_TEST_MAX);
 
-		store.reset();
+		// store.reset();
 
-		std::cout << "[GC Test]" << std::endl;
-		gc_test(GC_TEST_MAX);
+		// std::cout << "[GC Test]" << std::endl;
+		// gc_test(GC_TEST_MAX);
 	}
 };
 

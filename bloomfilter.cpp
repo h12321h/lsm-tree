@@ -48,20 +48,12 @@ void BloomFilter::readFilter(string filename,int offset){
 }
 
 void BloomFilter::writeFilter(string filename,int offset){
-    ofstream out(filename,ios::binary);
+    ofstream out(filename,ios::binary|ios::app|ios::out);
     if(!out){
         cout<<"open file error"<<endl;
         return;
     }
     out.seekp(offset,ios::beg);
-    std::streampos position = out.tellp();
-    std::cout << "BF position: " << position << std::endl;
     out.write((char*)hash,sizeof(bool)*BLOOMFILTER_SIZE);
-    std::streampos position1 = out.tellp();
-    std::cout << "BF1 position: " << position1 << std::endl;
-    out.seekp(0,ios::end);
-    std::streampos position2 = out.tellp();
-    std::cout << "SST position: " << position2 << std::endl;
-    out.flush();
     out.close();
 }
