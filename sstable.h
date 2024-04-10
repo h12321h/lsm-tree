@@ -17,7 +17,7 @@ private:
         uint32_t vlen;
         Node(){};
     };
-    Node *data;
+    Node *data;//缓存的元组
     string filename;
     uint64_t size;
     SSTheader *header;
@@ -29,6 +29,7 @@ public:
     SSTable(const string &filename,int timeStamp,string vlog_name);
     ~SSTable();
     void updateHeader();
+    void updateFilter();
     void put(uint64_t key, const string &val);
     string get(uint64_t key) const;
     void loadSSTable();

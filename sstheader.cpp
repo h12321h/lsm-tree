@@ -54,7 +54,7 @@ bool SSTheader::readHeader(uint64_t offset){
 }
 
 bool SSTheader::writeHeader(uint64_t offset){
-    ofstream out(filename,ios::binary);
+    ofstream out(filename,ios::binary|ios::out);
     if(!out){
         cout<<"open file error"<<endl;
         return false;

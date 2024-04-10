@@ -1,5 +1,6 @@
 #include "kvstore.h"
 #include <string>
+#include <filesystem>
 
 const int MAX_MEM_SIZE=408;
 
@@ -82,7 +83,10 @@ std::string KVStore::get(uint64_t key)
  */
 bool KVStore::del(uint64_t key)
 {
-	return false;
+    if(this->get(key)=="")
+        return false;
+    mem->del(key);
+    return true;
 }
 
 /**

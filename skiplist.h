@@ -6,6 +6,7 @@
 #define LSMKV_HANDOUT_SKIPLIST_H
 #include <list>
 #include<iostream>
+#include <vector>
 using namespace std;
 const int MAX_LEVEL=16;
 const double P=0.5;

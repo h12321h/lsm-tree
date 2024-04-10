@@ -46,11 +46,15 @@ void MemTable::change2SSTable(string dir,string vlog_name) {
     size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//文件数-时间戳
     string filename=path+"/"+to_string(file_count+1)+".sst";//文件名
     SSTable sst= SSTable(filename,file_count+1,vlog_name);
+    sst.updateHeader();//占位
+    sst.updateFilter();//占位
     //遍历跳表
-    for(auto it=skiplist->head->forward[0];it!= nullptr;it=it->forward[0]){
+    for(auto it=skiplist->head->forward[1];it!= nullptr;it=it->forward[1]){
+       // cout<<it->key<<" "<<it->val<<endl;
         sst.put(it->key,it->val);
     }
-    sst.updateHeader();
+    sst.updateHeader();//更新
+    sst.updateFilter();//更新
     reset();
 }
 

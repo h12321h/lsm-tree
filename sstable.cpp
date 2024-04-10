@@ -10,6 +10,7 @@ SSTable::SSTable(const string &filename,int timeStamp,string vlog_name){
     header=new SSTheader(filename);
     header->setTimeStamp(timeStamp);
     vlog=new VLog(vlog_name);
+    filter=new BloomFilter();
 }
 
 SSTable::~SSTable(){
@@ -40,20 +41,37 @@ string SSTable::get(uint64_t key) const{
 
 void SSTable::put(uint64_t key, const string &val){
     uint32_t vlen=val.size();
-    uint64_t offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量
+    uint64_t offset=0;
+    if(val=="~DELETED~"){//被删除
+        vlen=0;
+    }else{
+        offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量
+        filter->set(key);//bloomfilter
+    }
     header->addNum(1);//键值对数目+1
     header->setMinKey(key);//todo优化
     header->setMaxKey(key);
-    ofstream out(filename,ios::binary);//写入sstable
+    ofstream out(filename,ios::binary|ios::app|ios::out);//写入sstable
+    if (!out.is_open()) {
+        std::cerr << "Failed to open file." << std::endl;
+        return;
+    }
     out.seekp(0,ios::end);
+    std::streampos position = out.tellp();
+ //   std::cout << filename<<"SST position: " << position << std::endl;
     out.write((char*)&key,sizeof(uint64_t));//key
     out.write((char*)&offset,sizeof(uint64_t));//offset
-    out.write((char*)vlen,sizeof(uint32_t));//vlen
+    out.write((char*)&vlen,sizeof(uint32_t));//vlen
+    out.flush();
     out.close();
 }
 
 void SSTable::updateHeader(){
     header->writeHeader(0);
+}
+
+void SSTable::updateFilter(){
+    filter->writeFilter(filename,32);
 }
 
 void SSTable::loadSSTable(){
