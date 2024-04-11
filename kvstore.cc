@@ -63,6 +63,7 @@ std::string KVStore::get(uint64_t key)
             string filename=path+"/"+to_string(j)+".sst";
             SSTable *sst= new SSTable(filename,j,vlog_name);
             sst->loadSSTable();
+            //cout<<"load new "<<filename<<" "<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
             SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
             sstListHead=newCache;
         }

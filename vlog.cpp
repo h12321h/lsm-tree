@@ -11,15 +11,15 @@ VLog::~VLog() {
 
 }
 
-int VLog::write(const uint64_t key, const uint32_t vlen,const string value) {
+uint64_t VLog::write(const uint64_t key, const uint32_t vlen,const string &value) {
     ofstream out(filename,ios::binary|ios::app|ios::out);
     if(!out){
         cout<<"open file error"<<endl;
         return -1;
     }
+    out.seekp(0,ios::end);
     uint64_t offset=out.tellp();
     //cout<<"vlog:offset"<<offset<<endl;
-    out.seekp(0,ios::end);
     char magic=0xff;
     out.write(&magic,sizeof(char));//magic
 
@@ -41,9 +41,9 @@ int VLog::write(const uint64_t key, const uint32_t vlen,const string value) {
 
     out.write((char*)&key,sizeof(uint64_t));//key
     out.write((char*)&vlen,sizeof(uint32_t));//vlen
-    out.write(value.c_str(),value.size());//value
+    out.write(value.data(),vlen);//value
     out.close();
-    return offset+3+sizeof(uint64_t)+sizeof(uint32_t);//返回偏移量
+    return offset;//返回偏移量
 }
 
 string VLog::read(const uint64_t offset, const uint32_t vlen) {
@@ -52,13 +52,13 @@ string VLog::read(const uint64_t offset, const uint32_t vlen) {
         cout<<"open file error"<<endl;
         return "";
     }
-    in.seekg(offset,ios::beg);
 
-    char *buf=new char[vlen];
-    in.read(buf,vlen);
-    in.close();
-    string s(buf,vlen);
-    //cout<<s<<endl;
+    in.seekg(offset+3+sizeof(uint64_t)+sizeof(uint32_t),ios::beg);
+
+    std::string s(vlen, '\0');  // 创建一个足够大的字符串并初始化为0
+
+    // 读取整个文件到字符串
+    in.read(&s[0], vlen);
     return s;
 }
 

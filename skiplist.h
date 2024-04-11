@@ -18,6 +18,7 @@ public:
         std::vector<NODE*> forward;
         NODE(){}
         NODE(uint64_t key,string value,int level):key(key),val(value),forward(level, nullptr){}
+        ~NODE(){}
     };
     uint64_t level;
     double p;

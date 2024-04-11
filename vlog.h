@@ -18,7 +18,7 @@ public:
         this->filename = filename;
     };
     ~VLog();
-    int write(const uint64_t key,const uint32_t vlen,const string value);
+    uint64_t write(const uint64_t key,const uint32_t vlen,const string &value);
     string read(const uint64_t offset,const uint32_t vlen);
 };
 

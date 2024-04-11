@@ -75,12 +75,15 @@ private:
 		// Test deletions
 		for (i = 0; i < max; i += 2)
 		{
+			//cout<<i<<endl;
 			EXPECT(true, store.del(i));
 		}
 
-		for (i = 0; i < max; ++i)
+		for (i = 0; i < max; ++i){
 			EXPECT((i & 1) ? std::string(i + 1, 's') : not_found,
 				   store.get(i));
+		}
+			
 
 		for (i = 1; i < max; ++i){
 			EXPECT(i & 1, store.del(i));

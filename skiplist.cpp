@@ -74,7 +74,13 @@ void SkipList::reset() {
 }
 
 SkipList::~SkipList() {
-
+    NODE *t=this->head->forward[1];
+    while(t!= nullptr){
+        NODE *tmp=t;
+        t=t->forward[1];
+        delete tmp;
+    }
+    delete head;
 }
 
 

@@ -51,7 +51,7 @@ void SSTable::put(uint64_t key, const string &val){
     if(val=="~DELETED~"){//被删除
         vlen=0;
     }else{
-        offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量  
+        offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量 
     }
     filter->set(key);//bloomfilter
     header->setMinKey(key);//todo优化

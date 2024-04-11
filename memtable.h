@@ -23,7 +23,7 @@ public:
 
     string get(uint64_t key) const ;
 
-    void del(uint64_t key);//假设找到了
+    void del(uint64_t key);
 
     void scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const ;
 
