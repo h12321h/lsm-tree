@@ -54,8 +54,10 @@ void SkipList::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, std::strin
     }
     t=t->forward[1];
     while(t!= nullptr && t->key<=key2){
-        list.push_back(make_pair(t->key,t->val));
-        t=t->forward[1];
+        if(t->val!="~DELETED~"){
+            list.push_back(make_pair(t->key,t->val));
+            t=t->forward[1];
+        }
     }
 }
 

@@ -16,6 +16,7 @@ SSTheader::SSTheader(const string &filename) {
 }
 
 SSTheader::~SSTheader() {
+    
 }
 
 void SSTheader::setTimeStamp(uint64_t timeStamp){

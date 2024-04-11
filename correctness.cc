@@ -82,8 +82,11 @@ private:
 			EXPECT((i & 1) ? std::string(i + 1, 's') : not_found,
 				   store.get(i));
 
-		for (i = 1; i < max; ++i)
+		for (i = 1; i < max; ++i){
 			EXPECT(i & 1, store.del(i));
+			//cout<<i<<" "<<(i&1)<<" "<<store.del(i)<<endl;
+		}
+			
 
 		phase();//5
 
@@ -205,15 +208,15 @@ public:
 		std::cout << "[Simple Test]" << std::endl;
 		regular_test(SIMPLE_TEST_MAX);
 
-		// store.reset();
+		store.reset();
 
-		// std::cout << "[Large Test]" << std::endl;
-		// regular_test(LARGE_TEST_MAX);
+		std::cout << "[Large Test]" << std::endl;
+		regular_test(LARGE_TEST_MAX);
 
-		// store.reset();
+		store.reset();
 
-		// std::cout << "[GC Test]" << std::endl;
-		// gc_test(GC_TEST_MAX);
+		std::cout << "[GC Test]" << std::endl;
+		gc_test(GC_TEST_MAX);
 	}
 };
 

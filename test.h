@@ -31,6 +31,10 @@ protected:
 		{
 			++nr_passed_tests;
 			return;
+		}else{
+			std::cerr << "TEST Error @" << file << ":" << line;
+			std::cerr << ", expected " << exp;
+			std::cerr << ", got " << got << std::endl;
 		}
 		if (verbose)
 		{

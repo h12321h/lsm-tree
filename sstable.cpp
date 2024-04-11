@@ -14,13 +14,15 @@ SSTable::SSTable(const string &filename,int timeStamp,string vlog_name){
 }
 
 SSTable::~SSTable(){
-    delete header;
-    delete vlog;
-    delete filter;
     delete[] data;
+    delete filter;
+    delete vlog;
+    delete header;
 }
 
 string SSTable::get(uint64_t key) const{
+    if(key>header->max_key||key<header->min_key)
+        return "";
     if(!filter->get(key)){//bloomfilter判断是否存在
        // cout<<"filter not found"<<endl;
         return "";
@@ -28,8 +30,9 @@ string SSTable::get(uint64_t key) const{
     int left=0,right=header->num-1;
     while(left<=right&&right>=0&&left<header->num){//二分查找
         uint64_t mid=(left+right)/2;
-        if(data[mid].key==key&&data[mid].vlen>0){
-            //cout<<"0";
+        if(data[mid].key==key){
+            if(data[mid].vlen==0)
+                return "~DELETED~";
             return vlog->read(data[mid].offset,data[mid].vlen);
         }
         else if(data[mid].key<key){
@@ -48,9 +51,9 @@ void SSTable::put(uint64_t key, const string &val){
     if(val=="~DELETED~"){//被删除
         vlen=0;
     }else{
-        offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量
-        filter->set(key);//bloomfilter
+        offset=vlog->write(key,vlen,val);//写入vlog,返回偏移量  
     }
+    filter->set(key);//bloomfilter
     header->setMinKey(key);//todo优化
     header->setMaxKey(key);
     data[header->num].key=key;
@@ -60,8 +63,12 @@ void SSTable::put(uint64_t key, const string &val){
 }
 
 void SSTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const{
-    int left=0,right=header->num-1;
-    int start=header->num,end=0;
+    if(key1>header->max_key)
+        return ;
+    if(key2<header->min_key)
+        return ;
+    long left=0,right=header->num-1;
+    long start=header->num,end=0;
     //二分查找，找到第一个大于等于key1
     while(left<=right&&right>=0&&left<header->num){
         uint64_t mid=(left+right)/2;
@@ -73,6 +80,7 @@ void SSTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &
         }
     }
     //二分查找，找到最后一个小于等于key2
+    //left=0;
     right=header->num-1;
     while(left<=right&&right>=0&&left<header->num){
         uint64_t mid=(left+right)/2;
@@ -83,7 +91,6 @@ void SSTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &
             right=mid-1;
         }
     }
-
     for(int i=start;i<=end;i++){
         if(data[i].vlen>0){
             list.push_back(make_pair(data[i].key,vlog->read(data[i].offset,data[i].vlen)));

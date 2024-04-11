@@ -10,10 +10,10 @@ correctness: kvstore.o correctness.o memtable.o sstable.o skiplist.o sstheader.o
 persistence: kvstore.o correctness.o memtable.o sstable.o skiplist.o sstheader.o vlog.o bloomfilter.o
 	$(LINK.o) $^ -o $@
 
-clean:
+clean:r
 	-rm -f correctness persistence *.o
-	-rm -rf data/level-0
 
 r:
 	-rm -rf data/level-0
 	-rm -f data/vlog
+	-rm -f error_log.txt

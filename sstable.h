@@ -21,7 +21,6 @@ private:
     };
     Node *data;//缓存的元组
     string filename;
-    uint64_t size;
     SSTheader *header;
     BloomFilter *filter;
     VLog *vlog;

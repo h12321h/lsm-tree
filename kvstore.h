@@ -23,6 +23,9 @@ private:
             this->timeStamp=timeStamp;
             this->next=next;
         }
+        ~SSTCache(){
+            delete sstable;
+        }
     };
     SSTCache *sstListHead;
 

@@ -17,6 +17,7 @@ KVStore::KVStore(const std::string &dir, const std::string &vlog_name) : KVStore
 KVStore::~KVStore()
 {
     delete mem;
+    //todo
 }
 
 /**
@@ -41,15 +42,8 @@ std::string KVStore::get(uint64_t key)
         return "";
     if(res!="")
         return res;
-    //find in sstList
-    SSTCache *p=sstListHead;
-    while(p!=nullptr){
-        res=p->sstable->get(key);//todo
-        if(res!="")
-            return res;
-        p=p->next;
-    }
-    //find in sstable
+    
+    //load sstable
     //遍历level，以及level下的sstable
     int currentLevel;
     int currentTimeStamp;
@@ -71,11 +65,19 @@ std::string KVStore::get(uint64_t key)
             sst->loadSSTable();
             SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
             sstListHead=newCache;
-            res=sst->get(key);
-            if(res!="")
-                return res;
         }
         currentLevel++;
+    }
+
+    //find in sstList
+    SSTCache *p=sstListHead;
+    while(p!=nullptr){
+        res=p->sstable->get(key);
+        if(res=="~DELETED~")
+            return "";
+        if(res!="")
+            return res;
+        p=p->next;
     }
     return "";
 }
@@ -85,10 +87,13 @@ std::string KVStore::get(uint64_t key)
  */
 bool KVStore::del(uint64_t key)
 {
-    if(this->get(key)=="")
-        return false;
-    mem->del(key);
-    return true;
+    if(this->get(key)==""){
+       // cout<<key<<endl;
+        return 0;
+    }
+        
+    put(key,"~DELETED~");
+    return 1;
 }
 
 /**
@@ -102,7 +107,6 @@ void KVStore::reset()
     while(p!= nullptr){
         SSTCache *q=p;
         p=p->next;
-        delete q->sstable;
         delete q;
     }
     sstListHead= nullptr;
@@ -120,14 +124,7 @@ void KVStore::scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, s
     //scan memtable
     mem->scan(key1,key2,list);
 
-    //scan sstList
-    SSTCache *p=sstListHead;
-    while(p!=nullptr){
-        p->sstable->scan(key1,key2,list);
-        p=p->next;
-    }
-
-    //scan sstable
+    //load sstable
     int currentLevel;
     int currentTimeStamp;
     if(sstListHead== nullptr){
@@ -148,11 +145,16 @@ void KVStore::scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, s
             sst->loadSSTable();
             SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
             sstListHead=newCache;
-            sst->scan(key1,key2,list);
         }
         currentLevel++;
     }
 
+    //scan sstList
+    SSTCache *p=sstListHead;
+    while(p!=nullptr){
+        p->sstable->scan(key1,key2,list);
+        p=p->next;
+    }
     //sort list
     list.sort();//todo 优化
 }

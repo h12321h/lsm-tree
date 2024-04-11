@@ -52,6 +52,7 @@ void MemTable::change2SSTable(string dir,string vlog_name) {//todo 直接转存�
         sst->put(it->key,it->val);
     }
     sst->writeSSTable();
+    //cout<<"header:"<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
     reset();
     delete sst;
     return;
