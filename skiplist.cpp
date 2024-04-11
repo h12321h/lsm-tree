@@ -40,8 +40,6 @@ string SkipList::get(uint64_t key) const {
         while(t->forward[i]!= nullptr && t->forward[i]->key<key)
             t=t->forward[i];
         if(t->forward[i]!= nullptr&&t->forward[i]->key==key){
-            if(t->forward[i]->val=="~DELETED~")
-                return "";
             return t->forward[i]->val;
         }
     }

@@ -37,6 +37,8 @@ std::string KVStore::get(uint64_t key)
 {
 	//find in memtable
     string res=mem->get(key);
+    if(res=="~DELETED~")
+        return "";
     if(res!="")
         return res;
     //find in sstList
@@ -95,6 +97,17 @@ bool KVStore::del(uint64_t key)
  */
 void KVStore::reset()
 {
+    mem->reset();
+    SSTCache *p=sstListHead;
+    while(p!= nullptr){
+        SSTCache *q=p;
+        p=p->next;
+        delete q->sstable;
+        delete q;
+    }
+    sstListHead= nullptr;
+    filesystem::remove_all(dir);
+    filesystem::create_directory(dir);
 }
 
 /**

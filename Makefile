@@ -16,3 +16,4 @@ clean:
 
 r:
 	-rm -rf data/level-0
+	-rm -f data/vlog
