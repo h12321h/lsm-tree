@@ -11,6 +11,7 @@ class KVStore : public KVStoreAPI
 private:
     string dir;
     string vlog_name;
+    VLog *vlog;
     MemTable *mem;
     struct SSTCache{
         SSTable *sstable;

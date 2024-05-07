@@ -7,7 +7,8 @@ const int MAX_MEM_SIZE=408;
 KVStore::KVStore(const std::string &dir, const std::string &vlog_name) : KVStoreAPI(dir, vlog_name)
 {
     this->dir=dir;
-    this->vlog_name=vlog_name;
+    this->vlog=new VLog(vlog_name);
+    //this->vlog_name=vlog_name;
     mem = new MemTable();
     if(!filesystem::exists(dir))
         filesystem::create_directory(dir);
@@ -26,8 +27,11 @@ KVStore::~KVStore()
  */
 void KVStore::put(uint64_t key, const std::string &s)
 {
-    if(mem->getSize()>MAX_MEM_SIZE)
-        mem->change2SSTable(dir,vlog_name);
+    if(mem->getSize()>MAX_MEM_SIZE){
+        SSTable *newSSTable=mem->change2SSTable(dir,vlog);
+        SSTCache *newCache=new SSTCache(newSSTable,0,newSSTable->getTimeStamp(),sstListHead);//todo compact
+        sstListHead=newCache;
+    }
     mem->put(key,s);
 }
 /**
@@ -61,9 +65,9 @@ std::string KVStore::get(uint64_t key)
         size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//看这个level下有多少文件
         for(int j=currentTimeStamp+1;j<=file_count;j++){
             string filename=path+"/"+to_string(j)+".sst";
-            SSTable *sst= new SSTable(filename,j,vlog_name);
+            SSTable *sst= new SSTable(filename,j,this->vlog);
             sst->loadSSTable();
-            //cout<<"load new "<<filename<<" "<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
+           // cout<<"load new "<<filename<<" "<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
             SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
             sstListHead=newCache;
         }
@@ -103,6 +107,7 @@ bool KVStore::del(uint64_t key)
  */
 void KVStore::reset()
 {
+    cout<<"reset"<<endl;
     mem->reset();
     SSTCache *p=sstListHead;
     while(p!= nullptr){
@@ -113,6 +118,7 @@ void KVStore::reset()
     sstListHead= nullptr;
     filesystem::remove_all(dir);
     filesystem::create_directory(dir);
+    filesystem::remove_all(vlog->getFilename());
 }
 
 /**
@@ -142,7 +148,7 @@ void KVStore::scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, s
         size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//看这个level下有多少文件
         for(int j=currentTimeStamp+1;j<=file_count;j++){
             string filename=path+"/"+to_string(j)+".sst";
-            SSTable *sst= new SSTable(filename,j,vlog_name);
+            SSTable *sst= new SSTable(filename,j,vlog);
             sst->loadSSTable();
             SSTCache *newCache=new SSTCache(sst,currentLevel,j,sstListHead);
             sstListHead=newCache;
@@ -166,4 +172,5 @@ void KVStore::scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, s
  */
 void KVStore::gc(uint64_t chunk_size)
 {
+
 }

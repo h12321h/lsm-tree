@@ -39,13 +39,14 @@ void MemTable::reset() {
     skiplist=new SkipList();
 }
 
-void MemTable::change2SSTable(string dir,string vlog_name) {//todo 直接转存为缓存
+SSTable* MemTable::change2SSTable(string dir,VLog *vlog) {//todo 直接转存为缓存
+    //cout<<"change2SSTable"<<endl;
     string path=dir+"/level-0";//存储路径//todo
     if(!filesystem::exists(path))//创建目录
         filesystem::create_directory(path);
     size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//文件数-时间戳
     string filename=path+"/"+to_string(file_count+1)+".sst";//文件名
-    SSTable *sst=new SSTable(filename,file_count+1,vlog_name);//创建sst
+    SSTable *sst=new SSTable(filename,file_count+1,vlog);//创建sst
     sst->data=new SSTable::Node[skiplist->size];
     for(auto it=skiplist->head->forward[1];it!= nullptr;it=it->forward[1]){
        // cout<<it->key<<" "<<it->val<<endl;
@@ -54,7 +55,7 @@ void MemTable::change2SSTable(string dir,string vlog_name) {//todo 直接转存�
     sst->writeSSTable();
     //cout<<"header:"<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
     reset();
-    delete sst;
-    return;
+    //delete sst;
+    return sst;
 }
 

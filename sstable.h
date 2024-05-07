@@ -27,13 +27,16 @@ private:
 
 public:
     SSTable();
-    SSTable(const string &filename,int timeStamp,string vlog_name);
+    SSTable(const string &filename,int timeStamp,VLog *vlog);
     ~SSTable();
     void put(uint64_t key, const string &val);
     string get(uint64_t key) const;
     void scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const;
     void writeSSTable();
     void loadSSTable();
+    int getTimeStamp(){
+        return header->timeStamp;
+    }
 
 };
 

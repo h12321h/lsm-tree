@@ -14,7 +14,7 @@ VLog::~VLog() {
 uint64_t VLog::write(const uint64_t key, const uint32_t vlen,const string &value) {
     ofstream out(filename,ios::binary|ios::app|ios::out);
     if(!out){
-        cout<<"open file error"<<endl;
+        cout<<"open vlog file error"<<endl;
         return -1;
     }
     out.seekp(0,ios::end);
@@ -49,7 +49,7 @@ uint64_t VLog::write(const uint64_t key, const uint32_t vlen,const string &value
 string VLog::read(const uint64_t offset, const uint32_t vlen) {
     ifstream in(filename,ios::binary|ios::in);
     if(!in){
-        cout<<"open file error"<<endl;
+        cout<<"open vlog file error"<<endl;
         return "";
     }
 

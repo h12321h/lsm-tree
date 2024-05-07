@@ -10,6 +10,7 @@
 #include <list>
 using namespace std;
 
+class SSTable;
 class MemTable {
 private:
     SkipList *skiplist;
@@ -29,7 +30,7 @@ public:
 
     void reset() ;
 
-    void change2SSTable(string dir,string vlog_name);
+    SSTable* change2SSTable(string dir,VLog *vlog) ;
 
     int getSize(){
         return skiplist->size;

@@ -5,18 +5,22 @@
 #include "sstable.h"
 #include<fstream>
 
-SSTable::SSTable(const string &filename,int timeStamp,string vlog_name){
+SSTable::SSTable(const string &filename,int timeStamp,VLog *vlog){
+   // cout<<vlog->getFilename()<<endl;
     this->filename=filename;
     header=new SSTheader(filename);
     header->setTimeStamp(timeStamp);
-    vlog=new VLog(vlog_name);
+    this->vlog=vlog;
+   // cout<<"create sstable"<<endl;
+
+    //cout<<this->vlog->getFilename()<<endl;
+    //vlog=new VLog(vlog_name);
     filter=new BloomFilter();
 }
 
 SSTable::~SSTable(){
     delete[] data;
     delete filter;
-    delete vlog;
     delete header;
 }
 
