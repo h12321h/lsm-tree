@@ -4,12 +4,13 @@
 #include "memtable.h"
 #include "sstable.h"
 #include"vlog.h"
+#include"utils.h"
 
 class KVStore : public KVStoreAPI
 {
 	// You can add your implementation here
 private:
-    string dir;
+    string dir;//存储路径
     string vlog_name;
     VLog *vlog;
     MemTable *mem;
@@ -46,4 +47,7 @@ public:
 	void scan(uint64_t key1, uint64_t key2, std::list<std::pair<uint64_t, std::string>> &list) override;
 
 	void gc(uint64_t chunk_size) override;
+
+    void laodSSTCache();
+    uint64_t gcGet(uint64_t key);//用于gc时对比，返回偏移量(偏移量是当前key+当前entry后)
 };

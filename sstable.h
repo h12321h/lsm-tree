@@ -19,7 +19,7 @@ private:
         uint32_t vlen;
         Node(){};
     };
-    Node *data;//缓存的元组
+    Node *data;//缓存的元组,数组
     string filename;
     SSTheader *header;
     BloomFilter *filter;
@@ -37,7 +37,9 @@ public:
     int getTimeStamp(){
         return header->timeStamp;
     }
+    
 
+    uint64_t gcGet(uint64_t key);//用于gc时对比，返回偏移量(偏移量是当前key+当前entry后)
 };
 
 

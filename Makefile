@@ -7,7 +7,7 @@ all: correctness persistence
 correctness: kvstore.o correctness.o memtable.o sstable.o skiplist.o sstheader.o vlog.o bloomfilter.o
 	$(LINK.o) $^ -o $@
 
-persistence: kvstore.o correctness.o memtable.o sstable.o skiplist.o sstheader.o vlog.o bloomfilter.o
+persistence: kvstore.o persistence.o memtable.o sstable.o skiplist.o sstheader.o vlog.o bloomfilter.o
 	$(LINK.o) $^ -o $@
 
 clean:r

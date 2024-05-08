@@ -141,3 +141,28 @@ void SSTable::loadSSTable(){
     }
     in.close();
 }
+
+uint64_t SSTable::gcGet(uint64_t key){
+    if(key>header->max_key||key<header->min_key)
+        return 0;
+    if(!filter->get(key)){//bloomfilter判断是否存在
+       // cout<<"filter not found"<<endl;
+        return 0;
+    }  
+    int left=0,right=header->num-1;
+    while(left<=right&&right>=0&&left<header->num){//二分查找
+        uint64_t mid=(left+right)/2;
+        if(data[mid].key==key){
+            if(data[mid].vlen==0)
+                return 1;//1表示被删除
+            return data[mid].offset+3+sizeof(uint64_t)+sizeof(uint32_t)+data[mid].vlen;
+        }
+        else if(data[mid].key<key){
+            left=mid+1;
+        }
+        else{
+            right=mid-1;
+        }
+    }
+    return 0;//没找到
+}
