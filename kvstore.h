@@ -17,12 +17,12 @@ private:
     struct SSTCache{
         SSTable *sstable;
         int level;
-        int timeStamp;
+        int file;
         SSTCache *next;
-        SSTCache(SSTable *sstable,int level,int timeStamp,SSTCache *next= nullptr){
+        SSTCache(SSTable *sstable,int level,int file,SSTCache *next= nullptr){
             this->sstable=sstable;
             this->level=level;
-            this->timeStamp=timeStamp;
+            this->file=file;
             this->next=next;
         }
         ~SSTCache(){
@@ -30,6 +30,7 @@ private:
         }
     };
     SSTCache *sstListHead;
+
 
 public:
 	KVStore(const std::string &dir, const std::string &vlog_name);
@@ -50,4 +51,14 @@ public:
 
     void laodSSTCache();
     uint64_t gcGet(uint64_t key);//用于gc时对比，返回偏移量(偏移量是当前key+当前entry后)
+    void compaction();
+
+    void deleteSSTCache(int deleteLevel,int deleteFile);
+    void insertSSTCache(SSTCache *newCache);
+
+    int fileCount(int level);
+    int maxFileName(int level);
+    int fileNameNum(string filename);
+    int fileNameLevel(string filename);
+
 };

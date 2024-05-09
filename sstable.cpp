@@ -1,18 +1,29 @@
 //
 // Created by 丁牧云 on 2024/4/3.
 //
-
 #include "sstable.h"
 #include<fstream>
+#include <chrono>
+#include <cstdint>
+#include <ctime>
 
-SSTable::SSTable(const string &filename,int timeStamp,VLog *vlog){
+uint64_t generateTimestamp() {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto duration = now.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+}
+
+
+SSTable::SSTable(const string &filename,VLog *vlog){
    // cout<<vlog->getFilename()<<endl;
     this->filename=filename;
     header=new SSTheader(filename);
+    //时间戳
+    uint64_t timeStamp = generateTimestamp();
+    //cout<<timeStamp<<endl;
     header->setTimeStamp(timeStamp);
     this->vlog=vlog;
    // cout<<"create sstable"<<endl;
-
     //cout<<this->vlog->getFilename()<<endl;
     //vlog=new VLog(vlog_name);
     filter=new BloomFilter();
@@ -25,10 +36,15 @@ SSTable::~SSTable(){
 }
 
 string SSTable::get(uint64_t key) const{
-    if(key>header->max_key||key<header->min_key)
+    if(key>header->max_key||key<header->min_key){
+        if(key==39680)
+           // cout<<"超范围"<<endl;
         return "";
+    }
+        
     if(!filter->get(key)){//bloomfilter判断是否存在
-       // cout<<"filter not found"<<endl;
+    if(key==39680)
+        cout<<"filter not found"<<endl;
         return "";
     }  
     int left=0,right=header->num-1;
@@ -165,4 +181,91 @@ uint64_t SSTable::gcGet(uint64_t key){
         }
     }
     return 0;//没找到
+}
+
+//合并两个sstable的data，其他的不管
+void SSTable::merge(SSTable *s1,SSTable *s2){
+    header->setMinKey(min(s1->getMinKey(),s2->getMinKey()));
+    header->setMaxKey(max(s1->getMaxKey(),s2->getMaxKey()));
+    header->setNum(s1->getNum()+s2->getNum());
+    data=new Node[header->num];
+    uint64_t i=0,j=0;
+    uint64_t size=0;
+    while(i<s1->getNum()&&j<s2->getNum()){
+        // if(s1->data[i].key==39680||s2->data[j].key==39680)
+        //     cout<<"merge 39680"<<endl;
+         if(s1->data[i].key<s2->data[j].key){
+        //     if(s1->data[i].key==39680||s2->data[j].key==39680)
+        //         cout<<"merge< 39680"<<endl;
+            data[size++]=s1->data[i];
+            i++;
+        }else if(s1->data[i].key==s2->data[j].key){
+            // if(s1->data[i].key==39680||s2->data[j].key==39680)
+            //     cout<<"merge= 39680"<<endl;
+           // cout<<"same"<<endl;
+           // cout<<s1->getTimeStamp()<<" "<<s2->getTimeStamp()<<endl;
+            if(s1->getTimeStamp()>s2->getTimeStamp())
+                data[size++]=s1->data[i];
+            else
+                data[size++]=s2->data[j];
+            //header->addNum(-1);
+            i++;
+            j++;
+        }else{
+            // if(s1->data[i].key==39680||s2->data[j].key==39680)
+            //     cout<<"merge> 39680"<<endl;
+            data[size++]=s2->data[j];
+            j++;
+        }
+    }
+    while(i<s1->getNum()){
+        // if(s1->data[i].key==39680)
+        //     cout<<"merge i 39680"<<endl;
+        data[size++]=s1->data[i];
+        i++;
+    }
+    while(j<s2->getNum()){
+        // if(s1->data[j].key==39680)
+        //     cout<<"merge j 39680"<<endl;
+        data[size++]=s2->data[j];
+        j++;
+    }
+    header->setNum(size);
+    delete s1;
+    delete s2;
+    return ;
+}
+
+//拆分，拆成MAX_MEM_SIZE大小的
+void SSTable::split(SSTable *big){
+    if(big->getNum()<408)
+        header->setNum(big->getNum());
+    else
+        header->setNum(408);
+    
+   // cout<<"split minkey:"<<this->getMinKey()<<endl;
+   // cout<<"split maxkey:"<<this->getMaxKey()<<endl;
+    data=new Node[header->num];
+    int i=0;
+    while(i<header->num){
+        data[i]=big->data[i];
+        // if(data[i].key==39680)
+        //     cout<<"split put 39680"<<endl;
+        header->setMinKey(data[i].key);
+        header->setMaxKey(data[i].key);
+        filter->set(data[i].key);
+        i++;
+    }
+    big->header->setNum(big->getNum()-header->num);
+    Node *tmp=new Node[big->getNum()];
+    for(int j=0;j<big->getNum();j++){
+        tmp[j]=big->data[i];
+        // if(tmp[j].key==39680)
+        //     cout<<"split putto j 39680"<<endl;
+        i++;
+    }
+    //delete big->data;
+    big->data=tmp;
+    writeSSTable();
+    return ;
 }

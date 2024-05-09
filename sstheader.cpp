@@ -6,6 +6,9 @@
 #include<fstream>
 
 SSTheader::SSTheader() {
+    num=0;
+    min_key=UINT64_MAX;
+    max_key=0;
 }
 
 SSTheader::SSTheader(const string &filename) {

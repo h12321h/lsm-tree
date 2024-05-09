@@ -73,7 +73,7 @@ private:
 		phase();//4
 
 		// Test deletions
-		for (i = 0; i < max; i += 2)
+		for (i=0;i < max; i += 2)
 		{
 			//cout<<i<<endl;
 			EXPECT(true, store.del(i));

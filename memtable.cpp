@@ -3,59 +3,68 @@
 //
 
 #include "memtable.h"
-#include"sstable.h"
-#include<iostream>
-#include<fstream>
+#include "sstable.h"
+#include <iostream>
+#include <fstream>
 #include <filesystem>
 #include <string>
 using namespace std;
 
-MemTable::MemTable() {
-    skiplist=new SkipList();
+MemTable::MemTable()
+{
+    skiplist = new SkipList();
 }
 
-MemTable::~MemTable() {
+MemTable::~MemTable()
+{
     delete skiplist;
 }
 
-void MemTable::put(uint64_t key, const string &val) {
-    skiplist->put(key,val);
+void MemTable::put(uint64_t key, const string &val)
+{
+    skiplist->put(key, val);
 }
 
-string MemTable::get(uint64_t key) const {
+string MemTable::get(uint64_t key) const
+{
     return skiplist->get(key);
 }
 
-void MemTable::del(uint64_t key) {
-    skiplist->put(key,"~DELETED~");
+void MemTable::del(uint64_t key)
+{
+    skiplist->put(key, "~DELETED~");
 }
 
-void MemTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const {
-    skiplist->scan(key1,key2,list);
+void MemTable::scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string>> &list) const
+{
+    skiplist->scan(key1, key2, list);
 }
 
-void MemTable::reset() {
+void MemTable::reset()
+{
     delete skiplist;
-    skiplist=new SkipList();
+    skiplist = new SkipList();
 }
 
-SSTable* MemTable::change2SSTable(string dir,VLog *vlog) {//todo 直接转存为缓存
-    //cout<<"change2SSTable"<<endl;
-    string path=dir+"/level-0";//存储路径//todo
-    if(!filesystem::exists(path))//创建目录
+SSTable *MemTable::change2SSTable(string dir, VLog *vlog)
+{
+    // cout<<"change2SSTable"<<endl;
+    string path = dir + "/level-0"; // 存储路径//todo
+    if (!filesystem::exists(path))  // 创建目录
         filesystem::create_directory(path);
-    size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{});//文件数-时间戳
-    string filename=path+"/"+to_string(file_count+1)+".sst";//文件名
-    SSTable *sst=new SSTable(filename,file_count+1,vlog);//创建sst
-    sst->data=new SSTable::Node[skiplist->size];
-    for(auto it=skiplist->head->forward[1];it!= nullptr;it=it->forward[1]){
-       // cout<<it->key<<" "<<it->val<<endl;
-        sst->put(it->key,it->val);
+    size_t file_count = std::distance(filesystem::directory_iterator(path), filesystem::directory_iterator{}); // 文件数
+    string filename = path + "/" + to_string(file_count + 1) + ".sst";                                         // 文件名
+
+    SSTable *sst = new SSTable(filename,vlog); // 创建sst
+    sst->data = new SSTable::Node[skiplist->size];
+    for (auto it = skiplist->head->forward[1]; it != nullptr; it = it->forward[1])
+    {
+        // cout<<it->key<<" "<<it->val<<endl;
+        sst->put(it->key, it->val);
     }
     sst->writeSSTable();
-    //cout<<"header:"<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
+    // cout<<"header:"<<sst->header->min_key<<" "<<sst->header->max_key<<endl;
     reset();
-    //delete sst;
+    // delete sst;
     return sst;
 }
-

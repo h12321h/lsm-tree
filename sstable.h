@@ -10,8 +10,10 @@
 #include"vlog.h"
 #include"memtable.h"
 using namespace std;
+class KVStore;
 class SSTable {
 friend class MemTable;
+friend class KVStore;
 private:
     struct Node{
         uint64_t key;
@@ -26,20 +28,38 @@ private:
     VLog *vlog;
 
 public:
-    SSTable();
-    SSTable(const string &filename,int timeStamp,VLog *vlog);
+    SSTable(){}
+    SSTable(const string &filename,VLog *vlog);
     ~SSTable();
     void put(uint64_t key, const string &val);
     string get(uint64_t key) const;
     void scan(uint64_t key1, uint64_t key2, list<pair<uint64_t, string> > &list) const;
     void writeSSTable();
     void loadSSTable();
-    int getTimeStamp(){
+    uint64_t getTimeStamp(){
         return header->timeStamp;
     }
-    
+    uint64_t getNum(){
+        return header->num;
+    }
+    uint64_t getMinKey(){
+        return header->min_key;
+    }
+    uint64_t getMaxKey(){
+        return header->max_key;
+    }
+    Node* getData(){
+        return data;
+    }
+    string getFilename(){
+        return filename;
+    }
+
 
     uint64_t gcGet(uint64_t key);//用于gc时对比，返回偏移量(偏移量是当前key+当前entry后)
+
+    void merge(SSTable *s1,SSTable *s2);
+    void split(SSTable *big);
 };
 
 
