@@ -19,3 +19,4 @@ clean:r
 r:
 	-rm -rf data
 	-rm -f error_log.txt
+	-rm -f throughput_data.csv

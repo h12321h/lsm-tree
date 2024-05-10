@@ -7,6 +7,7 @@
 #include<iostream>
 #include"MurmurHash3.h"
 using namespace std;
+//BF
 #define BLOOMFILTER_SIZE 8192
 
 class BloomFilter {

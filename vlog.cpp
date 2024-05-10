@@ -13,7 +13,7 @@ VLog::VLog(const string &filename)
     //预创建vlog文件,并计算文件大小给head
     ofstream ofs(filename,std::ios::binary | std::ios::out|std::ios::app);
     head = ofs.tellp();
-    cout<<"head"<<head<<endl;
+    //cout<<"head"<<head<<endl;
     ofs.close();
     initTail();
 };
@@ -115,7 +115,7 @@ void VLog::initTail()
     if (tail == -1)
     {
         tail=0;
-        cout << "seek data block error" << endl;
+        //cout << "seek data block error" << endl;
         return;
     }
 
@@ -180,6 +180,6 @@ void VLog::initTail()
         }
         tail += 1;
     }
-    cout << tail << endl;
+    //cout << tail << endl;
     return;
 }

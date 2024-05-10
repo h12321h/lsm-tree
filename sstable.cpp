@@ -37,14 +37,12 @@ SSTable::~SSTable(){
 
 string SSTable::get(uint64_t key) const{
     if(key>header->max_key||key<header->min_key){
-        if(key==39680)
+        //if(key==39680)
            // cout<<"超范围"<<endl;
         return "";
     }
         
     if(!filter->get(key)){//bloomfilter判断是否存在
-    if(key==39680)
-        cout<<"filter not found"<<endl;
         return "";
     }  
     int left=0,right=header->num-1;

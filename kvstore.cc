@@ -3,7 +3,7 @@
 #include <string>
 #include <filesystem>
 
-const int MAX_MEM_SIZE = 408;
+const int MAX_MEM_SIZE = 408 ;
 
 KVStore::KVStore(const std::string &dir, const std::string &vlog_name) : KVStoreAPI(dir, vlog_name)
 {
@@ -64,8 +64,9 @@ std::string KVStore::get(uint64_t key)
     if (res != "")
         return res;
 
-    // load sstable
-    //laodSSTCache();
+    // load sstable ？？
+    // sstListHead = nullptr;
+    // laodSSTCache();
 
     // find in sstList
     SSTCache *p = sstListHead;
@@ -104,7 +105,7 @@ bool KVStore::del(uint64_t key)
  */
 void KVStore::reset()
 {
-    cout << "reset" << endl;
+    //cout << "reset" << endl;
     mem->reset();
     SSTCache *p = sstListHead;
     while (p != nullptr)
