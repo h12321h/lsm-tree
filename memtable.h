@@ -8,6 +8,7 @@
 #include"vlog.h"
 #include"sstable.h"
 #include <list>
+#include <cstdint>
 using namespace std;
 
 class SSTable;

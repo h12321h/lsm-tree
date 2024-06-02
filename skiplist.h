@@ -7,6 +7,7 @@
 #include <list>
 #include<iostream>
 #include <vector>
+#include <cstdint>
 using namespace std;
 const int MAX_LEVEL=16;
 const double P=0.5;

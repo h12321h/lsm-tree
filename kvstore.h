@@ -5,6 +5,7 @@
 #include "sstable.h"
 #include"vlog.h"
 #include"utils.h"
+#include <cstdint>
 
 class KVStore : public KVStoreAPI
 {

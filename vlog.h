@@ -6,6 +6,7 @@
 #define LSMKV_HANDOUT_VLOG_H
 #include<iostream>
 #include<fstream>
+#include <cstdint>
 using namespace std;
 
 class VLog {

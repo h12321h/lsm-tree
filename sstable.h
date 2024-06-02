@@ -9,6 +9,7 @@
 #include"bloomfilter.h"
 #include"vlog.h"
 #include"memtable.h"
+#include <cstdint>
 using namespace std;
 class KVStore;
 class SSTable {

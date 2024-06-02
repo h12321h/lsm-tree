@@ -6,6 +6,7 @@
 #include <fstream>
 #include "utils.h"
 #include <vector>
+constexpr char MAGIC = 0xff;
 
 VLog::VLog(const string &filename)
 {
@@ -17,7 +18,7 @@ VLog::VLog(const string &filename)
     ofs.close();
     initTail();
 };
-
+ 
 VLog::~VLog()
 {
 }
@@ -32,9 +33,11 @@ uint64_t VLog::write(const uint64_t key, const uint32_t vlen, const string &valu
     }
     out.seekp(0, ios::end);
     uint64_t offset = out.tellp();
-    // cout<<"vlog:offset"<<offset<<endl;
-    char magic = 0xff;
+    //cout<<"vlog:offset"<<offset<<endl;
+    char magic = MAGIC;
     out.write(&magic, sizeof(char)); // magic
+   // cout<<"magic"<<magic<<endl;
+    
 
     // checksum
     vector<unsigned char> data;
@@ -108,16 +111,19 @@ uint64_t VLog::readKey(uint64_t &offset)
     return key;
 }
 
+
 void VLog::initTail()
 {
-    tail = utils::seek_data_block(filename);
+    int tmp=utils::seek_data_block(filename); 
+    //cout<<"init"<<tmp<<endl;
     //cout << filename << endl;
-    if (tail == -1)
+    if (tmp == -1)
     {
         tail=0;
         //cout << "seek data block error" << endl;
         return;
     }
+    tail = tmp;
 
     ifstream in(filename, ios::binary | ios::in);
     if (!in)
@@ -128,28 +134,40 @@ void VLog::initTail()
 
     in.seekg(0, std::ios::end);
     head = in.tellg();
-
+  //  cout<<"head"<<head<<endl;
+    //tail=570945401;
+    in.seekg(tail, ios::beg);
     while (tail + 15 < head)
     {
+        //cout<<"while"<<tail<<endl;
         // 校对magic
         char magic;
-        in.seekg(tail, ios::beg);
+        
         in.read(&magic, sizeof(char));
-        if (magic == 0xff)
+        // if(magic!='s')
+        //     cout<<"read magic"<<(uint_t)magic<<endl;
+        if (magic == MAGIC)
         {
+            //cout<<"magic"<<endl;
+            
+             // 读出当前存储的checksum
+            uint16_t check;
+            //in.seekg(tail + 1, ios::beg);
+            in.read((char *)&check, sizeof(uint16_t)); // 获得checksum
+
             // 校对checksum
             uint64_t key;
-            in.seekg(tail + 3, ios::beg);
+           // in.seekg(tail + 3, ios::beg);
             in.read((char *)&key, sizeof(uint64_t)); // 获得key
 
             uint32_t vlen;
-            in.seekg(tail + 11, ios::beg);
+            //in.seekg(tail + 11, ios::beg);
             in.read((char *)&vlen, sizeof(uint32_t)); // 获得vlen
 
             string value;
             if (tail + 15 + vlen <= head)
             {
-                in.seekg(tail + 15, ios::beg);
+                //in.seekg(tail + 15, ios::beg);
                 value.resize(vlen);
                 in.read(&value[0], vlen); // 获得value
             }
@@ -170,16 +188,14 @@ void VLog::initTail()
             data.insert(data.end(), value.begin(), value.end());
             uint16_t checksum = utils::crc16(data);
 
-            // 读出当前存储的checksum
-            uint16_t check;
-            in.seekg(tail + 1, ios::beg);
-            in.read((char *)&check, sizeof(uint16_t)); // 获得checksum
+           
 
             if (check == checksum)
                 break;
         }
         tail += 1;
     }
-    //cout << tail << endl;
+    
+   // cout << tail << endl;
     return;
 }

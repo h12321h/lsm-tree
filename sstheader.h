@@ -5,6 +5,7 @@
 #ifndef LSMKV_HANDOUT_SSTHEADER_H
 #define LSMKV_HANDOUT_SSTHEADER_H
 #include<iostream>
+#include <cstdint>
 using namespace std;
 
 class SSTheader {

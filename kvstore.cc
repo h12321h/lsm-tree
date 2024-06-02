@@ -153,7 +153,7 @@ void KVStore::gc(uint64_t chunk_size)
 {
     uint64_t tail = vlog->getTail();
     uint64_t offset = tail;
-   // cout <<"tail"<< tail << endl;
+    //cout <<"tail"<< tail << endl;
     while (offset < tail + chunk_size)
     {
         string s = vlog->read(offset);
@@ -172,8 +172,10 @@ void KVStore::gc(uint64_t chunk_size)
     SSTCache *newCache = new SSTCache(newSSTable, fileNameLevel(newSSTable->getFilename()), fileNameNum(newSSTable->getFilename()), sstListHead); // todo compact
     sstListHead = newCache;
     compaction();
-    utils::de_alloc_file(vlog->getFilename(), tail, offset - tail); // 打洞
+    utils::de_alloc_file(vlog->getFilename(), tail, offset-tail); // 打洞
+  //  cout<<"打洞"<<offset<<endl;
     vlog->setTail(offset);
+    //vlog->initTail();
     return;
 }
 
